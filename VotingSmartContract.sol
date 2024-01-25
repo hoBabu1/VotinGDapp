@@ -25,8 +25,8 @@ contract VotingSmartContract
     uint nextVoterId =1;
     uint nextCandidateId =1;
 
-    uint startTime; // start time of election 
-    uint endTime;    // end time of election 
+    uint public startTime; // start time of election 
+    uint public endTime;    // end time of election 
 
     mapping(uint => Voter) voterDetails;
     mapping(uint=> Candidate) candidateDetails;
@@ -114,19 +114,19 @@ contract VotingSmartContract
         require(_candidateId>0 && _candidateId<nextCandidateId , "Cndidate id is not valid "  );
         require(voterDetails[_voterId].voteCandidateId == 0 , "You have already Voted ");
         require(nextCandidateId>2 , "there is only one candidate ");
-        require(startTime>0 , "Voting is not staerted");
+        require(block.timestamp>=startTime , "Voting is not staerted");
         voterDetails[_voterId].voteCandidateId = _candidateId;
         candidateDetails[_candidateId].votes++;
 
     }
     function voteTime(uint _startTime , uint duration ) external onlyElectionCommission
     {
-        startTime = _startTime;
-        endTime =_startTime +duration;
+        startTime =block.timestamp+_startTime;
+        endTime =startTime+duration;
     }
     function votingStatus() public view returns(string memory)
     {
-        if(startTime==0)
+        if(block.timestamp<startTime)
         {
             return "Voting is Yet to Begin";
         }
@@ -149,10 +149,12 @@ contract VotingSmartContract
                 max = candidateDetails[i].votes;
                 winner = candidateDetails[i].candidtaeAddress;
             }
+
         }
     }
     function emergency() external onlyElectionCommission()
     {
         stopVoting = true;
+
     }
 }
